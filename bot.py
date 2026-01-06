@@ -1,6 +1,6 @@
 import threading
-from http.server import HTTPServer, BaseHTTPRequestHandler
-
+import os
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from pyrogram import Client
 from config.config import BOT_TOKEN, API_ID, API_HASH
 
@@ -11,23 +11,25 @@ from handlers.status import register_status_handlers
 from handlers.broadcast import register_broadcast_handlers
 
 
-# ========== HTTP SERVER (For Render + UptimeRobot) ==========
-
+# ================== UPTIME SERVER ==================
 class PingHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
-        self.send_header("Content-type", "text/plain; charset=utf-8")
+        self.send_header("Content-type", "text/plain")
         self.end_headers()
-        self.wfile.write("Auto Message Scheduler Bot is running".encode("utf-8"))
+        self.wfile.write(b"Bot is alive!")
+
+    def do_HEAD(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/plain")
+        self.end_headers()
+
 
 def run_http_server():
-    server = HTTPServer(("0.0.0.0", 8080), PingHandler)
+    port = int(os.environ.get("PORT", 8080))
+    server = HTTPServer(("0.0.0.0", port), PingHandler)
     server.serve_forever()
-
-threading.Thread(target=run_http_server, daemon=True).start()
-
-
-# ========== PYROGRAM BOT ==========
+# ==================================================
 
 app = Client(
     "AutoMessageBot",
