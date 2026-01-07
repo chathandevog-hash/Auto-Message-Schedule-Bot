@@ -3,16 +3,18 @@ from config.config import MONGO_URI
 
 client = MongoClient(MONGO_URI)
 db = client["auto_message_bot"]
-messages = db["messages"]
+collection = db["schedules"]
 
 def add_message(data):
-    return messages.insert_one(data).inserted_id
+    return collection.insert_one(data).inserted_id
 
-def get_messages(chat_id):
-    return list(messages.find({"chat_id": chat_id, "status": "running"}))
+def get_all(chat_id=None):
+    if chat_id is None:
+        return list(collection.find({}))
+    return list(collection.find({"chat_id": chat_id}))
+
+def get_all_running():
+    return list(collection.find({"status": "running"}))
 
 def stop_message(msg_id):
-    messages.update_one({"_id": msg_id}, {"$set": {"status": "stopped"}})
-
-def get_all(chat_id):
-    return list(messages.find({"chat_id": chat_id}))
+    collection.update_one({"_id": msg_id}, {"$set": {"status": "stopped"}})
