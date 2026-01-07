@@ -1,21 +1,20 @@
 import asyncio
-import time
-from database.mongodb import collection
+from database.mongodb import get_all_running
 
 async def schedule_loop(app):
     print("⏰ Scheduler started")
 
     while True:
-        for item in collection.find({"status": "running"}):
+        msgs = get_all_running()
+
+        for m in msgs:
             try:
                 await app.send_message(
-                    chat_id=item["chat_id"],
-                    text=item["text"]
+                    chat_id=m["chat_id"],
+                    text=m["text"]
                 )
-
-                await asyncio.sleep(item["interval"])
-
+                await asyncio.sleep(m["interval"])
             except Exception as e:
-                print("❌ Scheduler error:", e)
+                print("Scheduler error:", e)
 
         await asyncio.sleep(2)
