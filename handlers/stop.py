@@ -8,11 +8,11 @@ def register_stop_handlers(app):
         if not await is_admin(_, message):
             return
 
-        msgs = list(get_all(message.chat.id))
+        msgs = get_all(message.chat.id)
         if not msgs:
-            return await message.reply("❌ No running messages found")
+            return await message.reply("❌ No scheduled messages")
 
         for m in msgs:
             stop_message(m["_id"])
 
-        await message.reply(f"🛑 Stopped {len(msgs)} auto messages")
+        await message.reply(f"🛑 Stopped {len(msgs)} messages")
