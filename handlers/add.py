@@ -5,15 +5,9 @@ from utils.admin_check import is_admin
 from database.mongodb import add_message
 
 TIMES = {
-    "30s": 30,
-    "1m": 60,
-    "5m": 300,
-    "10m": 600,
-    "20m": 1200,
-    "30m": 1800,
-    "1h": 3600,
-    "2h": 7200,
-    "5h": 18000
+    "30s": 30, "1m": 60, "5m": 300,
+    "10m": 600, "20m": 1200, "30m": 1800,
+    "1h": 3600, "2h": 7200, "5h": 18000
 }
 
 def register_add_handlers(app):
@@ -22,12 +16,11 @@ def register_add_handlers(app):
     async def add(_, message):
         if not await is_admin(_, message):
             return
-
         if not message.reply_to_message:
-            return await message.reply("❗ Reply to a message and use /add")
+            return await message.reply("❗ Reply to a message first")
 
         buttons = [
-            [InlineKeyboardButton(text=k, callback_data=f"set_{v}")]
+            [InlineKeyboardButton(k, callback_data=f"set_{v}")]
             for k, v in TIMES.items()
         ]
 
@@ -39,15 +32,14 @@ def register_add_handlers(app):
     @app.on_callback_query(filters.regex("^set_"))
     async def set_time(_, cq):
         interval = int(cq.data.split("_")[1])
-
         original = cq.message.reply_to_message
-        send_time = int(time.time()) + interval  # ✅ MAIN FIX
 
         add_message({
             "chat_id": original.chat.id,
             "text": original.text or original.caption,
-            "time": send_time,     # ✅ REQUIRED
-            "sent": False          # ✅ REQUIRED
+            "interval": interval,
+            "status": "running"
         })
 
-        await cq.message.edit("✅ Message scheduled successfully")
+        await cq.answer("Scheduled!", show_alert=True)
+        await cq.message.edit("✅ Auto message scheduled!")
