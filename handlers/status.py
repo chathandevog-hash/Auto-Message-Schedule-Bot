@@ -7,10 +7,16 @@ def register_status_handlers(app):
     async def status(_, message):
         if not await is_admin(_, message):
             return
-        data = get_all(message.chat.id)
+
+        data = list(get_all(message.chat.id))
         if not data:
-            return await message.reply("No messages")
-        text = "📊 Status\n"
+            return await message.reply("❌ No scheduled messages found")
+
+        text = "📊 **Auto Message Status**\n\n"
+
         for i, m in enumerate(data, 1):
-            text += f"{i}. {m.get('status')}\n"
+            status = m.get("status", "unknown")
+            interval = m.get("interval", "?")
+            text += f"{i}. ⏱ `{interval}s` → **{status}**\n"
+
         await message.reply(text)
